@@ -15,6 +15,7 @@ import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.Formatter;
 import android.util.Log;
@@ -159,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
     private void initializeAdapter(List<CacheItem> items) {
         cacheListadapter = new RecycleViewCacheAdapter(getApplicationContext(), items);
         mRecyclerView.setAdapter(cacheListadapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
     }
 
     @Override
