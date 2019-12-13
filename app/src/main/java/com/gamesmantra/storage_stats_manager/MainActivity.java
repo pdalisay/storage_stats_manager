@@ -124,9 +124,12 @@ public class MainActivity extends AppCompatActivity {
 
             try {
                 final StorageStats storageStats = storageStatsManager.queryStatsForPackage(uuid, "com.facebook.katana", user);
-                Log.d("Facebook App Bytes: ", "" + Formatter.formatShortFileSize(this, storageStats.getAppBytes()));
-                Log.d("Facebook Data Bytes: ", "" + Formatter.formatShortFileSize(this, storageStats.getDataBytes()));
-                Log.d("Facebook Cache Bytes: ", "" + Formatter.formatShortFileSize(this, storageStats.getCacheBytes()));
+                Log.d("Facebook App Bytes", storageStats.getAppBytes() + " / "+
+                        Formatter.formatShortFileSize(this, storageStats.getAppBytes()));
+                Log.d("Facebook Data Bytes: ", storageStats.getDataBytes() + " / " +
+                        Formatter.formatShortFileSize(this, storageStats.getDataBytes()));
+                Log.d("Facebook Cache Bytes: ", storageStats.getCacheBytes() + " / " +
+                        Formatter.formatShortFileSize(this, storageStats.getCacheBytes()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
