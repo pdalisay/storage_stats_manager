@@ -1,6 +1,7 @@
 package com.gamesmantra.storage_stats_manager;
 
 import android.app.AppOpsManager;
+import android.app.usage.StorageStats;
 import android.app.usage.StorageStatsManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -9,6 +10,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.UserHandle;
+import android.os.Process;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.provider.Settings;
@@ -20,6 +23,7 @@ import android.support.v7.widget.RecyclerView;
 import android.text.format.Formatter;
 import android.util.Log;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -56,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("AppLog", "storage:" + uuid + " : " + storageVolume.getDescription(this) + " : " + storageVolume.getState());
                 Log.d("AppLog", "getFreeBytes:" + Formatter.formatShortFileSize(this, storageStatsManager.getFreeBytes(uuid)));
                 Log.d("AppLog", "getTotalBytes:" + Formatter.formatShortFileSize(this, storageStatsManager.getTotalBytes(uuid)));
+
             } catch (Exception e) {
                 // IGNORED
             }
@@ -104,6 +109,30 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void showStorageStats() {
+        StorageStatsManager storageStatsManager = (StorageStatsManager) getSystemService(Context.STORAGE_STATS_SERVICE);
+        StorageManager storageManager = (StorageManager) getSystemService(Context.STORAGE_SERVICE);
+        if (storageManager == null || storageStatsManager == null) {
+            return;
+        }
+        List<StorageVolume> storageVolumes = storageManager.getStorageVolumes();
+        for (StorageVolume storageVolume : storageVolumes) {
+            final UserHandle user = Process.myUserHandle();
+            final String uuidStr = storageVolume.getUuid();
+            final UUID uuid = uuidStr == null ? StorageManager.UUID_DEFAULT : UUID.fromString(uuidStr);
+
+            try {
+                final StorageStats storageStats = storageStatsManager.queryStatsForPackage(uuid, "com.facebook.katana", user);
+                Log.d("Facebook App Bytes: ", "" + Formatter.formatShortFileSize(this, storageStats.getAppBytes()));
+                Log.d("Facebook Data Bytes: ", "" + Formatter.formatShortFileSize(this, storageStats.getDataBytes()));
+                Log.d("Facebook Cache Bytes: ", "" + Formatter.formatShortFileSize(this, storageStats.getCacheBytes()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private void startScanning() {
         taskScan = new ScanApps(getApplicationContext());
 
@@ -123,6 +152,8 @@ public class MainActivity extends AppCompatActivity {
                     cacheListadapter.addItem(cacheItem);
                     cacheListadapter.sort(RecycleViewCacheAdapter.CACHE_ITEM_SIZE_COMPARATOR);
                     String fileSize = Formatter.formatFileSize(getApplicationContext(), cacheListadapter.getCacheSize());
+                    if(cacheItem.getApplicationName().equals("Facebook"))
+                        showStorageStats();
                 }
 
                 if (current != -1 && current == max && !updated) {
